@@ -1,6 +1,208 @@
 # Changelog
 
+## 0.16.0
+
+Added:
+
+* You can now configure your stores individually. [commit](1de5e95)
+
+```js
+class TodoStore {
+  static config = {
+    getState(state) {
+      // adds a new todo every time you getState
+      return states.todos.push({ 'Another todo!' });
+    }
+  }
+}
+```
+
+* You can now create your actions inside the constructor by using instance properties. [commit](752995d)
+
+```js
+class FooActions {
+  constructor() {
+    this.myAction = function (x) {
+      this.dispatch(x);
+    };
+  }
+}
+```
+
+* `inject` prop to AltContainer. [commit](14b56aa)
+
+```js
+// inject lets you inject arbitrary props to your children
+
+<AltContainer inject={{ foo: 7, bar: 'hello' }}>
+  <div />
+</AltContainer>
+
+// div gets prop foo=7 and bar='hello'
+```
+
+* `component` prop to AltContainer. [commit](653cb29)
+
+```js
+// rather than rendering its children you can now pass in a component
+
+<AltContainer component={MyComponent} />
+
+// equivalent to
+
+<AltContainer>
+  <MyComponent />
+</AltContainer>
+```
+
+* Allow customizing where you assign your state as a key. [commit](ff9e4dd)
+
+```js
+// if you yearn for a react-like API you can now has
+
+const alt = new Alt({ stateKey: 'state' });
+
+class Store {
+  constructor() {
+    this.state = {
+      stateGoesHere: 1,
+      yay: 2
+    };
+
+    this.nowItsPrivate = true;
+  }
+}
+```
+
+* An [ES5 guide](http://alt.js.org/guides/es5/) now exists. [commit](8d4ec48)
+
+* Customizable setState and getState. [commit](60c11b6)
+
+```js
+You can now customize the way getState and setState behave at the app level.
+
+const alt = new Alt({
+  getState(state) {
+    // add fuzzlewuzzle to every state
+    state.fuzzlewuzzle = true;
+    return state;
+  },
+
+  setState(existingState, newState) {
+    // forget existingState, in with the new out with the old
+    return newState;
+  }
+});
+```
+
+* connectToStores function which also works with decorators. [commit](aedabf4)
+
+* ImmutableJS support, in an addon as a decorator. [commit](78ef8bf)
+
+Fixes:
+
+* finalStore is cached per alt instance so it only returns one. [commit](838d8cb)
+* You can now override a store's name using `displayName`. [commit](c91bb1e)
+* Fix context for nested components. [commit](21d4d6d)
+* Fix AltContainer and AltNativeContainer's rendering. [commit](a155e7d)
+* setState now emits a change immediately if the dispatcher is not dispatching. [commit](dd22c7e)
+
+Changes:
+
+* Internals were refactored. [commit](56ede21)
+* Babel was upgraded to babel5. [commit](ff00128)
+
+Breaking Changes:
+
+* withAltContext is now in decorator form. [commit](3d2df4f)
+
+  **Upgrade Guide**
+
+  - Previously withAltContext took two arguments. The flux and the component.
+  - Now it takes a single argument, flux. It returns a function which takes another argument, the component.
+
+  As a decorator:
+
+  ```js
+  @withAltContext(alt)
+  export default class App extends React.Component {
+    render() {
+      return <div>{this.context.flux}</div>
+    }
+  }
+  ```
+
+* atomicTransactions util has been renamed to just atomic. [commit](ff6c285)
+
+* beforeEach/afterEach methods have been moved to lifecycle. [commit](81a4e24)
+
+  **Upgrade Guide**
+
+  - Previously the beforeEach and afterEach methods existed as a prototype method on the store.
+  - Now they are lifecycle methods.
+
+```js
+// the new way
+
+class Store {
+  constructor() {
+    this.on('beforeEach', () => {
+    });
+  }
+}
+```
+
+* New method signatures for createStore, createActions, etc. [commit](06838e7)
+
+  **Upgrade Guide**
+
+  - Previously all constructors for stores and actions received the alt instance as its first argument.
+  - You now have to pass this in yourself.
+
+```js
+// old behavior
+
+class MyStore {
+  constructor(alt) { }
+}
+```
+
+```js
+// allows you to pass in your own arguments to the constructors
+
+class MyStore {
+  constructor(alt, one, two, three) { }
+}
+
+alt.createStore(MyStore, null, alt, 1, 2, 3)
+```
+
+* Removed `mixins` from browser-with-addons. [commit](ca2e40e)
+
+Mixins are dead, all hail our new higher-order component overlords.
+Please use AltContainer instead: http://alt.js.org/docs/components/altContainer/
+
+* Method signature for beforeEach, afterEach, error lifecycle events have changed. [commit](0b4f3c6)
+
+  **Upgrade Guide**
+
+  - Previously the method signature looked like `fn(actionName, data, state)`.
+  - Now it has been simplified to `fn(payload, state)` where `payload` is an object.
+  - The payload object contains keys `action` and `data` which contain the information from before.
+
+```js
+class Store {
+  constructor() {
+    this.on('beforeEach', (payload, state) => {
+      console.log(payload.data);
+    });
+  }
+}
+```
+
 ## 0.15.6
+
+Added:
 
 * Adding unlisten lifecycle method. [commit](91a67d4)
 * AltContainer now takes in store listeners for functions. [commit](7083141)
