@@ -103,12 +103,15 @@ class Alt {
       })
     }
     action[ACTION_KEY] = actionName
-    return action
+    return (this.actions[actionId] = action)
   }
 
   createActions(ActionsClass, exportObj = {}, ...argsForConstructor) {
     const actions = {}
-    const key = ActionsClass.displayName || ActionsClass.name || ''
+    const key = uid(
+      GlobalActionsNameRegistry,
+      ActionsClass.displayName || ActionsClass.name || ''
+    )
 
     if (typeof ActionsClass === 'function') {
       assign(actions, getInternalMethods(ActionsClass.prototype, true))
@@ -134,6 +137,7 @@ class Alt {
 
     return Object.keys(actions).reduce((obj, action) => {
       obj[action] = this.createAction(`${key}#${action}`, actions[action], obj)
+      const actionSymbol = Symbol.keyFor(obj[action][ACTION_KEY])
       const constant = formatAsConstant(action)
       obj[constant] = obj[action][ACTION_KEY]
       return obj
