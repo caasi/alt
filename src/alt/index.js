@@ -39,7 +39,7 @@ class Alt {
       }, {})
     }
     this.dispatcher = config.dispatcher || new Dispatcher()
-    this.actions = {}
+    this.actions = { global: {} }
     this.stores = {}
     this._stateKey = config.stateKey
     this[LAST_SNAPSHOT] = this[INIT_SNAPSHOT] = '{}'
@@ -103,14 +103,14 @@ class Alt {
       })
     }
     action[ACTION_KEY] = actionName
-    return (this.actions[actionId] = action)
+    return (this.actions.global[actionId] = action)
   }
 
   createActions(ActionsClass, exportObj = {}, ...argsForConstructor) {
     const actions = {}
     const key = uid(
       GlobalActionsNameRegistry,
-      ActionsClass.displayName || ActionsClass.name || ''
+      ActionsClass.displayName || ActionsClass.name || 'global'
     )
 
     if (typeof ActionsClass === 'function') {
@@ -135,8 +135,13 @@ class Alt {
       assign(actions, ActionsClass)
     }
 
+    this.actions[key] = this.actions[key] || {}
+
     return Object.keys(actions).reduce((obj, action) => {
       obj[action] = this.createAction(`${key}#${action}`, actions[action], obj)
+      if (key !== 'global') {
+        this.actions[key][action] = obj[action]
+      }
       const actionSymbol = Symbol.keyFor(obj[action][ACTION_KEY])
       const constant = formatAsConstant(action)
       obj[constant] = obj[action][ACTION_KEY]
