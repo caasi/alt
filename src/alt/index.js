@@ -142,7 +142,6 @@ class Alt {
       if (key !== 'global') {
         this.actions[key][action] = obj[action]
       }
-      const actionSymbol = Symbol.keyFor(obj[action][ACTION_KEY])
       const constant = formatAsConstant(action)
       obj[constant] = obj[action][ACTION_KEY]
       return obj
